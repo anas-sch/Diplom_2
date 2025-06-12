@@ -1,6 +1,8 @@
 import requests
 from tests.conftest import BASE_URL, HEADERS
 import allure
+from data import (STATUS_OK, STATUS_BAD_REQUEST, SUCCESS_TRUE, SUCCESS_FALSE, MESSAGE_NO_INGREDIENTS,
+                  ORDER_SHOULD_CONTAIN_INGREDIENTS)
 
 class TestCreateOrder:
     @allure.title("Оформление заказа без авторизации с ингредиентами")
@@ -10,8 +12,8 @@ class TestCreateOrder:
         response = requests.post(f"{BASE_URL}/orders", json=order_data, headers=HEADERS)
         response_data = response.json()
 
-        assert response.status_code == 200
-        assert response_data.get("success") is True
+        assert response.status_code == STATUS_OK
+        assert response_data.get("success") is SUCCESS_TRUE
         assert "order" in response_data
 
     @allure.title("Оформление заказа с авторизацией с ингредиентами")
@@ -22,10 +24,10 @@ class TestCreateOrder:
         response = requests.post(f"{BASE_URL}/orders", json=order_data, headers=headers)
         response_data = response.json()
 
-        assert response.status_code == 200
-        assert response_data.get("success") is True
+        assert response.status_code == STATUS_OK
+        assert response_data.get("success") is SUCCESS_TRUE
         assert "order" in response_data
-        assert response_data["order"].get("ingredients"), "Order should contain ingredients"
+        assert response_data["order"].get("ingredients"), ORDER_SHOULD_CONTAIN_INGREDIENTS
 
     @allure.title("Оформление заказа без ингредиентов")
     def test_create_order_empty_ingredients(self, auth_token):
@@ -35,8 +37,8 @@ class TestCreateOrder:
         response = requests.post(f"{BASE_URL}/orders", json=order_data, headers=headers)
         response_data = response.json()
 
-        assert response.status_code == 400
-        assert response_data.get("message") == "Ingredient ids must be provided"
+        assert response.status_code == STATUS_BAD_REQUEST
+        assert response_data.get("message") == MESSAGE_NO_INGREDIENTS
 
     @allure.title("Оформление заказа с неверным хешем ингредиентов")
     def test_create_order_invalid_ingredients(self, auth_token):
@@ -47,6 +49,6 @@ class TestCreateOrder:
         response_data = response.json()
 
 
-        assert response.status_code == 400
-        assert response_data.get("success") is False
+        assert response.status_code == STATUS_BAD_REQUEST
+        assert response_data.get("success") is SUCCESS_FALSE
         assert "message" in response_data

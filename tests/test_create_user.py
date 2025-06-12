@@ -1,12 +1,15 @@
 import requests
 from tests.conftest import BASE_URL, HEADERS, create_user, generate_unique_email
 import allure
+from data import MESSAGE_USER_EXISTS, MESSAGE_MISSING_FIELDS, STATUS_FORBIDDEN
 
 class TestCreateUser:
     @allure.title("Создание уникального пользователя")
     def test_create_user(self, create_user):
         user_data, access_token = create_user
-        assert access_token is not None
+        with allure.step("Проверяем, что пользователь успешно создан и получен токен"):
+            assert access_token is not None, "Токен не получен — пользователь не создан"
+
 
 
     @allure.title("Создание пользователя, который уже зарегистрирован")
@@ -18,8 +21,8 @@ class TestCreateUser:
             headers=HEADERS
         )
 
-        assert response.status_code == 403
-        assert response.json()["message"] == "User already exists"
+        assert response.status_code == STATUS_FORBIDDEN
+        assert response.json()["message"] == MESSAGE_USER_EXISTS
 
 
     @allure.title("Создание пользователя без обязательного поля")
@@ -35,5 +38,5 @@ class TestCreateUser:
             headers=HEADERS
         )
 
-        assert response.status_code == 403
-        assert response.json()["message"] == "Email, password and name are required fields"
+        assert response.status_code == STATUS_FORBIDDEN
+        assert response.json()["message"] == MESSAGE_MISSING_FIELDS
